@@ -28,12 +28,19 @@ dependencies:
 - aeson
 - bytestring
 - wai
+- wai-extra
 - warp
 - base-compat
 - postgresql-simple
 - uuid
 - resource-pool
 - co-log
+- http-types
+- test-framework
+- test-framework-quickcheck2
+- test-framework-hunit
+- QuickCheck
+- HUnit
 
 library:
   source-dirs: src

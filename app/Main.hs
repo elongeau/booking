@@ -1,11 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Monoid (mconcat)
-import Web.Scotty
+import Network.Wai.Handler.Warp
+import App
 
 main :: IO ()
-main = scotty 3000 $
-    get "/:word" $ do
-        beam <- param "word"
-        html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
+main = do
+  app <- application
+  run 3000 app
+

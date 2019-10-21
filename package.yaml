@@ -41,6 +41,8 @@ dependencies:
 - test-framework-hunit
 - QuickCheck
 - HUnit
+- postgresql-simple
+- resource-pool
 
 library:
   source-dirs: src

@@ -5,6 +5,9 @@ import App
 
 main :: IO ()
 main = do
-  app <- application
+  connectionInfo <- readConnectionInfo
+  pool <- mkDbPool connectionInfo
+  let handle = mkHandle pool
+  app <- application handle
   run 3000 app
 

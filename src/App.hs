@@ -6,6 +6,7 @@ module App where
 
 -- import qualified Data.Monoid as M
 
+import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Pool (Pool, createPool, withResource)
 import qualified Data.Text as T
@@ -15,7 +16,6 @@ import Database.PostgreSQL.Simple.FromRow (FromRow (..), field, fromRow)
 import GHC.Generics
 import Network.Wai
 import System.Environment (getEnv)
-import Control.Monad.IO.Class
 import qualified Web.Scotty as S
 
 data Booking
@@ -25,10 +25,7 @@ data Booking
 instance FromRow Booking where
   fromRow = Hotel <$> field <*> field <*> field
 
-data Repository a
-  = Repository
-      { findAll :: IO [a]
-      }
+data Repository a = Repository {findAll :: IO [a]}
 
 type DBPool = Pool Connection
 
@@ -41,7 +38,8 @@ mkRepository pool = Repository {findAll = _findAll}
 
 readConnectionInfo :: IO ConnectInfo
 readConnectionInfo =
-  ConnectInfo <$> getEnv "DB_HOST" <*> (read <$> getEnv "DB_PORT")
+  ConnectInfo <$> getEnv "DB_HOST"
+    <*> (read <$> getEnv "DB_PORT")
     <*> getEnv "DB_USER"
     <*> getEnv "DB_PASSWORD"
     <*> getEnv "DB_DATABASE"

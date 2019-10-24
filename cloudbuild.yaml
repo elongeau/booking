@@ -17,14 +17,14 @@ steps:
       - --key=${_CACHE_KEY}
       - --path=.stack-work
       - --path=/builder/home/.stack
-    waitFor: 
+    waitFor:
       - build-bin
   - name: gcr.io/$PROJECT_ID/stack
     id: copy-bin
     entrypoint: make
     args:
       - copy-bin
-    waitFor: 
+    waitFor:
       - build-bin
   - name: gcr.io/kaniko-project/executor:latest
     id: build
@@ -50,4 +50,4 @@ timeout: 9600s
 substitutions:
   _CACHE_BUCKET: gs://haskell-deps
   _CACHE_KEY: resources-$( checksum package.yaml )
-  _APP_NAME: reminder-app
+  _APP_NAME: booking-app

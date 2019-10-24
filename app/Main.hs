@@ -1,7 +1,7 @@
 module Main where
 
-import Network.Wai.Handler.Warp
 import App
+import Network.Wai.Handler.Warp
 
 main :: IO ()
 main = do
@@ -9,5 +9,4 @@ main = do
   pool <- mkDbPool connectionInfo
   let handle = mkHandle pool
   app <- application handle
-  run 3000 app
-
+  run 8080 app

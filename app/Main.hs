@@ -1,6 +1,12 @@
 module Main where
 
-import Lib
+import App
+import Network.Wai.Handler.Warp
 
 main :: IO ()
-main = someFunc
+main = do
+  connectionInfo <- readConnectionInfo
+  pool <- mkDbPool connectionInfo
+  let handle = mkHandle pool
+  app <- application handle
+  run 8080 app

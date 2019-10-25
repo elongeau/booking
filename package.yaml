@@ -21,6 +21,28 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- scotty
+- time
+- text
+- mtl
+- aeson
+- bytestring
+- wai
+- wai-extra
+- warp
+- base-compat
+- postgresql-simple
+- uuid
+- resource-pool
+- co-log
+- http-types
+- test-framework
+- test-framework-quickcheck2
+- test-framework-hunit
+- QuickCheck
+- HUnit
+- postgresql-simple
+- resource-pool
 
 library:
   source-dirs: src

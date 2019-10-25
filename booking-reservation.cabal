@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b9973c9f6f543bba78749c5f98b3544dac2cd15f063a51cb5f06952210d6e5b4
+-- hash: c9a90433fbb439282418771cb5542df83a6edfe458587cc081371ca8be0d4b12
 
 name:           booking-reservation
 version:        0.1.0.0
@@ -27,13 +27,34 @@ source-repository head
 
 library
   exposed-modules:
+      App
       Lib
   other-modules:
       Paths_booking_reservation
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , QuickCheck
+    , aeson
+    , base >=4.7 && <5
+    , base-compat
+    , bytestring
+    , co-log
+    , http-types
+    , mtl
+    , postgresql-simple
+    , resource-pool
+    , scotty
+    , test-framework
+    , test-framework-hunit
+    , test-framework-quickcheck2
+    , text
+    , time
+    , uuid
+    , wai
+    , wai-extra
+    , warp
   default-language: Haskell2010
 
 executable booking-reservation-exe
@@ -44,8 +65,28 @@ executable booking-reservation-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , QuickCheck
+    , aeson
+    , base >=4.7 && <5
+    , base-compat
     , booking-reservation
+    , bytestring
+    , co-log
+    , http-types
+    , mtl
+    , postgresql-simple
+    , resource-pool
+    , scotty
+    , test-framework
+    , test-framework-hunit
+    , test-framework-quickcheck2
+    , text
+    , time
+    , uuid
+    , wai
+    , wai-extra
+    , warp
   default-language: Haskell2010
 
 test-suite booking-reservation-test
@@ -57,6 +98,26 @@ test-suite booking-reservation-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , QuickCheck
+    , aeson
+    , base >=4.7 && <5
+    , base-compat
     , booking-reservation
+    , bytestring
+    , co-log
+    , http-types
+    , mtl
+    , postgresql-simple
+    , resource-pool
+    , scotty
+    , test-framework
+    , test-framework-hunit
+    , test-framework-quickcheck2
+    , text
+    , time
+    , uuid
+    , wai
+    , wai-extra
+    , warp
   default-language: Haskell2010

@@ -60,8 +60,11 @@ mkHandle pool = Handle
   }
 
 application :: Handle -> IO Application
-application handle = S.scottyApp
-  $ S.get "/bookings"
-  $ do
-    bookings <- liftIO $ findAll $ repo handle
-    S.json bookings
+application handle =
+  S.scottyApp $
+    S.get "/bookings" (getBookings handle)
+
+getBookings :: Handle -> S.ActionM ()
+getBookings handle = do
+  bookings <- liftIO $ findAll $ repo handle
+  S.json bookings

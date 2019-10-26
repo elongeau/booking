@@ -14,7 +14,7 @@ import Test.QuickCheck
 
 main :: IO ()
 main =
-  defaultMain $
+  defaultMain
     [ "Get bookings" ~: \() -> do
         actual <- get "/bookings"
         assertStatus 200 actual
@@ -22,7 +22,7 @@ main =
     ]
 
 bookings =
-  [ Hotel "Foo" 123 (TI.fromGregorian 2019 1 1)
+  [ Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1)
   ]
 
 (~:) :: (Functor f, Testable prop, Testable (f Property)) => TestName -> f (Session prop) -> TF.Test

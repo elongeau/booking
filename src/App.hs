@@ -19,13 +19,18 @@ import System.Environment (getEnv)
 import qualified Web.Scotty as S
 
 data Booking
-  = Hotel {name :: T.Text, room :: Int, date :: TI.Day}
+  = Hotel
+      { id :: Int,
+        name :: T.Text,
+        room :: Int,
+        date :: TI.Day
+      }
   deriving (Show, Eq, Generic, ToJSON)
 
 instance FromRow Booking where
-  fromRow = Hotel <$> field <*> field <*> field
+  fromRow = Hotel <$> field <*> field <*> field <*> field
 
-data Repository a = Repository {findAll :: IO [a]}
+newtype Repository a = Repository {findAll :: IO [a]}
 
 type DBPool = Pool Connection
 
@@ -49,7 +54,7 @@ mkDbPool connectionInfo = do
   let create = connect connectionInfo
   createPool create close 1 0.5 1
 
-data Handle
+newtype Handle
   = Handle
       { repo :: Repository Booking
       }

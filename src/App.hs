@@ -25,17 +25,24 @@ data Booking
         room :: Int,
         date :: TI.Day
       }
-  deriving (Show, Eq, Generic, ToJSON)
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 instance FromRow Booking where
   fromRow = Hotel <$> field <*> field <*> field <*> field
 
-newtype Repository a = Repository {findAll :: IO [a]}
+data Repository a
+  = Repository
+      { findAll :: IO [a],
+        save :: a -> IO Int
+      }
 
 type DBPool = Pool Connection
 
 mkRepository :: DBPool -> Repository Booking
-mkRepository pool = Repository {findAll = _findAll}
+mkRepository pool = Repository
+  { findAll = _findAll,
+    save = \booking -> undefined
+  }
   where
     _findAll :: IO [Booking]
     _findAll = withResource pool $ \conn ->
@@ -66,10 +73,18 @@ mkHandle pool = Handle
 
 application :: Handle -> IO Application
 application handle =
-  S.scottyApp $
-    S.get "/bookings" (getBookings handle)
+  S.scottyApp $ do
+    S.get
+      "/bookings"
+      (getBookings handle)
+    S.post
+      "/bookings"
+      (createBooking handle)
 
 getBookings :: Handle -> S.ActionM ()
 getBookings handle = do
   bookings <- liftIO $ findAll $ repo handle
   S.json bookings
+
+createBooking :: Handle -> S.ActionM ()
+createBooking handle = S.json $ Hotel 1 "foo" 2 (TI.fromGregorian 2019 1 1)

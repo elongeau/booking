@@ -18,16 +18,20 @@ import Test.QuickCheck
 main :: IO ()
 main =
   defaultMain
-    [ "Get bookings" `should` \() -> do
+    [ "No bookings" `should` \() -> do
         actual <- get "/bookings"
         assertStatus 200 actual
-        assertBody (encode bookings) actual,
+        assertBody (encode noBooking) actual,
       "Create booking" `should` \() -> do
         actual <- postJSON "/bookings" (encode bookings)
         assertStatus 200 actual
-        -- dbRef <- inMemoryDB
-        return ()
+        -- actualG <- get "/bookings"
+        -- assertStatus 200 actualG
+        -- assertBody (encode bookings) actualG
     ]
+  where
+    noBooking :: [Booking]
+    noBooking = []
 
 bookings =
   [ Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1)
@@ -54,7 +58,10 @@ testHandle :: Handle
 testHandle = Handle
   { repo = Repository
       { -- TODO return from IORef
-        findAll = return bookings,
+        findAll = do
+          dbRef <- inMemoryDB
+          db <- readIORef dbRef
+          return $ Map.elems db,
         save = \booking -> do
           dbRef <- inMemoryDB
           db <- readIORef dbRef

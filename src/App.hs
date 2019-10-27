@@ -11,8 +11,9 @@ import Data.Aeson
 import Data.Pool (Pool, createPool, withResource)
 import qualified Data.Text as T
 import qualified Data.Time as TI
-import Database.PostgreSQL.Simple (ConnectInfo (..), Connection, close, connect, query_)
+import Database.PostgreSQL.Simple (ConnectInfo (..), Connection, close, connect, execute, query_)
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field, fromRow)
+import Database.PostgreSQL.Simple.ToRow (ToRow (..), toRow)
 import GHC.Generics
 import Network.Wai
 import System.Environment (getEnv)
@@ -20,7 +21,7 @@ import qualified Web.Scotty as S
 
 data Booking
   = Hotel
-      { id :: Int,
+      { idBooking :: Int,
         name :: T.Text,
         room :: Int,
         date :: TI.Day
@@ -29,6 +30,9 @@ data Booking
 
 instance FromRow Booking where
   fromRow = Hotel <$> field <*> field <*> field <*> field
+
+instance ToRow Booking where
+  toRow (Hotel idBooking name room date) = toRow (idBooking, name, room, date)
 
 data Repository a
   = Repository
@@ -41,12 +45,16 @@ type DBPool = Pool Connection
 mkRepository :: DBPool -> Repository Booking
 mkRepository pool = Repository
   { findAll = _findAll,
-    save = \booking -> undefined
+    save = _save
   }
   where
     _findAll :: IO [Booking]
     _findAll = withResource pool $ \conn ->
       query_ conn "SELECT * FROM booking"
+    _save :: Booking -> IO Int
+    _save booking = withResource pool $ \conn -> do
+      execute conn "insert into booking values (?, ?, ?, ?)" booking
+      return $ idBooking booking
 
 readConnectionInfo :: IO ConnectInfo
 readConnectionInfo =
@@ -87,4 +95,8 @@ getBookings handle = do
   S.json bookings
 
 createBooking :: Handle -> S.ActionM ()
-createBooking handle = S.json $ Hotel 1 "foo" 2 (TI.fromGregorian 2019 1 1)
+createBooking handle = do
+  booking <- S.jsonData :: S.ActionM Booking
+  -- TODO set ID
+  idBooking <- liftIO $ save (repo handle) booking
+  S.json idBooking

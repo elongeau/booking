@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c9a90433fbb439282418771cb5542df83a6edfe458587cc081371ca8be0d4b12
+-- hash: c20a9a440edf360a0b75d18689b60ee2467834c99f007801fd9fdd3e71b4e98c
 
 name:           booking-reservation
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
     , base-compat
     , bytestring
     , co-log
+    , containers
     , http-types
     , mtl
     , postgresql-simple
@@ -73,6 +74,7 @@ executable booking-reservation-exe
     , booking-reservation
     , bytestring
     , co-log
+    , containers
     , http-types
     , mtl
     , postgresql-simple
@@ -106,6 +108,7 @@ test-suite booking-reservation-test
     , booking-reservation
     , bytestring
     , co-log
+    , containers
     , http-types
     , mtl
     , postgresql-simple

@@ -1,8 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import App
+import Control.Concurrent.MVar
 import Data.Aeson
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Map as Map
 import Data.Time as TI
 import Network.HTTP.Types
 import Network.Wai
@@ -14,37 +17,64 @@ import Test.QuickCheck
 
 main :: IO ()
 main =
-  defaultMain $
-    [ "Get bookings" ~: \() -> do
+  defaultMain
+    [ "No bookings" `should` \() -> do
         actual <- get "/bookings"
         assertStatus 200 actual
-        assertBody (encode bookings) actual
+        assertBody (encode noBooking) actual,
+      "Create booking" `should` \() -> do
+        let booking = Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1)
+        actual <- postJSON "/bookings" (encode booking)
+        assertStatus 200 actual
+        actualG <- get "/bookings"
+        assertStatus 200 actualG
+        assertBody (encode [booking]) actualG
     ]
-
-bookings =
-  [ Hotel "Foo" 123 (TI.fromGregorian 2019 1 1)
-  ]
-
-(~:) :: (Functor f, Testable prop, Testable (f Property)) => TestName -> f (Session prop) -> TF.Test
-(~:) = appProperty
+  where
+    noBooking :: [Booking]
+    noBooking = []
 
 get :: BS.ByteString -> Session SResponse
 get url = request $ setPath defaultRequest {requestMethod = methodGet} url
 
-testHandle :: Handle
-testHandle = Handle
+postJSON :: BS.ByteString -> LBS.ByteString -> Session SResponse
+postJSON url json = srequest $ SRequest req json
+  where
+    req = setPath defaultReq url
+    defaultReq =
+      defaultRequest
+        { requestMethod = methodPost,
+          requestHeaders = [(hContentType, "application/json")]
+        }
+
+newtype DB = DB {db :: MVar (Map.Map Int Booking)}
+
+inMemoryDB :: IO DB
+inMemoryDB = do
+  _db <- newMVar Map.empty
+  return $ DB _db
+
+testHandle :: DB -> Handle
+testHandle (DB dbVar) = Handle
   { repo = Repository
-      { findAll = return bookings
+      { findAll = do
+          db <- takeMVar dbVar
+          return $ Map.elems db,
+        save = \booking -> do
+          db <- takeMVar dbVar
+          let key = Map.size db
+              updatedDB = Map.insert key booking db
+          putMVar dbVar updatedDB
+          return key
       }
   }
 
 runSessionWithApp :: Session a -> IO a
-runSessionWithApp s = application testHandle >>= runSession s
+runSessionWithApp s = inMemoryDB >>= application . testHandle >>= runSession s
 
-appProperty ::
+should ::
   (Functor f, Testable prop, Testable (f Property)) =>
   TestName ->
   f (Session prop) ->
   TF.Test
-appProperty name =
-  testProperty name . fmap (ioProperty . runSessionWithApp)
+should name = testProperty name . fmap (ioProperty . runSessionWithApp)

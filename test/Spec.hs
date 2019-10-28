@@ -22,7 +22,6 @@ main =
         actual <- get "/bookings"
         assertStatus 200 actual
         assertBody (encode noBooking) actual,
-      -- TODO ajouter un générateur de booking
       "Create booking" `should` \() -> do
         let booking = Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1)
         actual <- postJSON "/bookings" (encode booking)
@@ -35,7 +34,6 @@ main =
     noBooking :: [Booking]
     noBooking = []
 
--- TODO créer des méthodes helper
 get :: BS.ByteString -> Session SResponse
 get url = request $ setPath defaultRequest {requestMethod = methodGet} url
 

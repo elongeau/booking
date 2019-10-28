@@ -97,6 +97,5 @@ getBookings handle = do
 createBooking :: Handle -> S.ActionM ()
 createBooking handle = do
   booking <- S.jsonData :: S.ActionM Booking
-  -- TODO set ID
   idBooking <- liftIO $ save (repo handle) booking
   S.json idBooking

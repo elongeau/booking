@@ -4,7 +4,8 @@ import App
 import Data.Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
-import Data.IORef
+
+import Control.Concurrent.MVar
 import qualified Data.Map as Map
 import Data.Time as TI
 import Network.HTTP.Types
@@ -22,12 +23,13 @@ main =
         actual <- get "/bookings"
         assertStatus 200 actual
         assertBody (encode noBooking) actual,
+        -- TODO ajouter un générateur de booking
       "Create booking" `should` \() -> do
-        actual <- postJSON "/bookings" (encode bookings)
+        actual <- postJSON "/bookings" (encode $ Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1))
         assertStatus 200 actual
-        -- actualG <- get "/bookings"
-        -- assertStatus 200 actualG
-        -- assertBody (encode bookings) actualG
+        actualG <- get "/bookings"
+        assertStatus 200 actualG
+        assertBody (encode bookings) actualG
     ]
   where
     noBooking :: [Booking]
@@ -51,22 +53,22 @@ postJSON url json = srequest $ SRequest req json
           }
         url
 
-inMemoryDB :: IO (IORef (Map.Map Int Booking))
-inMemoryDB = newIORef Map.empty
+inMemoryDB :: IO (MVar (Map.Map Int Booking))
+inMemoryDB = newMVar Map.empty
 
 testHandle :: Handle
 testHandle = Handle
   { repo = Repository
-      { -- TODO return from IORef
-        findAll = do
+      { findAll = do
           dbRef <- inMemoryDB
-          db <- readIORef dbRef
+          db <- takeMVar dbRef
           return $ Map.elems db,
         save = \booking -> do
           dbRef <- inMemoryDB
-          db <- readIORef dbRef
+          db <- takeMVar dbRef
           let key = Map.size db
-          modifyIORef dbRef $ Map.insert key booking
+              updatedDB = Map.insert key booking db
+          putMVar dbRef updatedDB
           return key
       }
   }

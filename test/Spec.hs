@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import App
+import Control.Concurrent.MVar
 import Data.Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
-
-import Control.Concurrent.MVar
 import qualified Data.Map as Map
 import Data.Time as TI
 import Network.HTTP.Types
@@ -23,21 +22,18 @@ main =
         actual <- get "/bookings"
         assertStatus 200 actual
         assertBody (encode noBooking) actual,
-        -- TODO ajouter un générateur de booking
+      -- TODO ajouter un générateur de booking
       "Create booking" `should` \() -> do
-        actual <- postJSON "/bookings" (encode $ Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1))
+        let booking = Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1)
+        actual <- postJSON "/bookings" (encode booking)
         assertStatus 200 actual
         actualG <- get "/bookings"
         assertStatus 200 actualG
-        assertBody (encode bookings) actualG
+        assertBody (encode [booking]) actualG
     ]
   where
     noBooking :: [Booking]
     noBooking = []
-
-bookings =
-  [ Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1)
-  ]
 
 get :: BS.ByteString -> Session SResponse
 get url = request $ setPath defaultRequest {requestMethod = methodGet} url
@@ -45,36 +41,40 @@ get url = request $ setPath defaultRequest {requestMethod = methodGet} url
 postJSON :: BS.ByteString -> LBS.ByteString -> Session SResponse
 postJSON url json = srequest $ SRequest req json
   where
-    req =
-      setPath
-        defaultRequest
-          { requestMethod = methodPost,
-            requestHeaders = [(hContentType, "application/json")]
-          }
-        url
+    req = setPath defaultReq url
+    defaultReq =
+      defaultRequest
+        { requestMethod = methodPost,
+          requestHeaders = [(hContentType, "application/json")]
+        }
 
-inMemoryDB :: IO (MVar (Map.Map Int Booking))
-inMemoryDB = newMVar Map.empty
+newtype DB = DB {db :: MVar (Map.Map Int Booking)}
 
-testHandle :: Handle
-testHandle = Handle
+inMemoryDB :: IO DB
+inMemoryDB = do
+  _db <- newMVar Map.empty
+  return $ DB _db
+
+testHandle :: DB -> Handle
+testHandle (DB dbVar) = Handle
   { repo = Repository
       { findAll = do
-          dbRef <- inMemoryDB
-          db <- takeMVar dbRef
+          db <- takeMVar dbVar
           return $ Map.elems db,
         save = \booking -> do
           dbRef <- inMemoryDB
-          db <- takeMVar dbRef
+          db <- takeMVar dbVar
           let key = Map.size db
               updatedDB = Map.insert key booking db
-          putMVar dbRef updatedDB
+          putMVar dbVar updatedDB
           return key
       }
   }
 
 runSessionWithApp :: Session a -> IO a
-runSessionWithApp s = application testHandle >>= runSession s
+runSessionWithApp s = do
+  db <- inMemoryDB
+  application (testHandle db) >>= runSession s
 
 should ::
   (Functor f, Testable prop, Testable (f Property)) =>

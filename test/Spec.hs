@@ -35,6 +35,7 @@ main =
     noBooking :: [Booking]
     noBooking = []
 
+-- TODO créer des méthodes helper
 get :: BS.ByteString -> Session SResponse
 get url = request $ setPath defaultRequest {requestMethod = methodGet} url
 
@@ -62,7 +63,6 @@ testHandle (DB dbVar) = Handle
           db <- takeMVar dbVar
           return $ Map.elems db,
         save = \booking -> do
-          dbRef <- inMemoryDB
           db <- takeMVar dbVar
           let key = Map.size db
               updatedDB = Map.insert key booking db
@@ -72,14 +72,11 @@ testHandle (DB dbVar) = Handle
   }
 
 runSessionWithApp :: Session a -> IO a
-runSessionWithApp s = do
-  db <- inMemoryDB
-  application (testHandle db) >>= runSession s
+runSessionWithApp s = inMemoryDB >>= application . testHandle >>= runSession s
 
 should ::
   (Functor f, Testable prop, Testable (f Property)) =>
   TestName ->
   f (Session prop) ->
   TF.Test
-should name =
-  testProperty name . fmap (ioProperty . runSessionWithApp)
+should name = testProperty name . fmap (ioProperty . runSessionWithApp)

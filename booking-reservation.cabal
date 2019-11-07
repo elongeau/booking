@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c20a9a440edf360a0b75d18689b60ee2467834c99f007801fd9fdd3e71b4e98c
+-- hash: 334527e6171dd5aeccc80bed4b680cc9a5b7950757f9bdeeaf48ce2b0a01f65f
 
 name:           booking-reservation
 version:        0.1.0.0
@@ -95,6 +95,7 @@ test-suite booking-reservation-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      TestUtils
       Paths_booking_reservation
   hs-source-dirs:
       test

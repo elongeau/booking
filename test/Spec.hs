@@ -3,12 +3,8 @@
 import App
 import Control.Concurrent.MVar
 import Data.Aeson
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
 import Data.Time as TI
-import Network.HTTP.Types
-import Network.Wai
 import Network.Wai.Test
 import Test.Framework.Providers.API as TF
 import Test.Framework.Providers.QuickCheck2
@@ -56,3 +52,13 @@ testHandle (DB dbVar) = Handle
           return key
       }
   }
+
+runSessionWithApp :: Session a -> IO a
+runSessionWithApp s = inMemoryDB >>= application . testHandle >>= runSession s
+
+should ::
+  (Functor f, Testable prop, Testable (f Property)) =>
+  TestName ->
+  f (Session prop) ->
+  TF.Test
+should name = testProperty name . fmap (ioProperty . runSessionWithApp)

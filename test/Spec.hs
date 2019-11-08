@@ -1,16 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import App
 import Control.Concurrent.MVar
 import Data.Aeson
 import qualified Data.Map as Map
-import Data.Time as TI
 import Network.Wai.Test
 import Test.Framework.Providers.API as TF
 import Test.Framework.Providers.QuickCheck2
 import Test.Framework.Runners.Console
 import Test.QuickCheck
+import Test.QuickCheck.Instances
 import TestUtils
+
+instance Arbitrary Booking where
+  arbitrary = Hotel <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
 
 main :: IO ()
 main =
@@ -19,8 +23,7 @@ main =
         actual <- get "/bookings"
         assertStatus 200 actual
         assertBody (encode noBooking) actual,
-      "Create booking" `should` \() -> do
-        let booking = Hotel 1 "Foo" 123 (TI.fromGregorian 2019 1 1)
+      "Create booking" `should` \(booking :: Booking) -> do
         actual <- postJSON "/bookings" (encode booking)
         assertStatus 200 actual
         actualG <- get "/bookings"

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 334527e6171dd5aeccc80bed4b680cc9a5b7950757f9bdeeaf48ce2b0a01f65f
+-- hash: fac51416129df842cd3ec9bf19bdbbdc9b14e54f03867d36fa75137dd614e476
 
 name:           booking-reservation
 version:        0.1.0.0
@@ -45,6 +45,7 @@ library
     , http-types
     , mtl
     , postgresql-simple
+    , quickcheck-instances
     , resource-pool
     , scotty
     , test-framework
@@ -78,6 +79,7 @@ executable booking-reservation-exe
     , http-types
     , mtl
     , postgresql-simple
+    , quickcheck-instances
     , resource-pool
     , scotty
     , test-framework
@@ -113,6 +115,7 @@ test-suite booking-reservation-test
     , http-types
     , mtl
     , postgresql-simple
+    , quickcheck-instances
     , resource-pool
     , scotty
     , test-framework

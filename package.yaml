@@ -44,6 +44,7 @@ dependencies:
   - postgresql-simple
   - resource-pool
   - containers
+  - quickcheck-instances
 
 library:
   source-dirs: src
